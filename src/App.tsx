@@ -32,9 +32,23 @@ import PatientSettings from "@/pages/dashboard/patient/Settings";
 
 // Doctor Dashboard
 import DoctorDashboard from "@/pages/dashboard/doctor/DoctorDashboard";
+import DoctorAppointments from "@/pages/dashboard/doctor/DoctorAppointments";
+import PatientRequests from "@/pages/dashboard/doctor/PatientRequests";
+import Prescriptions from "@/pages/dashboard/doctor/Prescriptions";
+import PatientHistory from "@/pages/dashboard/doctor/PatientHistory";
+import Availability from "@/pages/dashboard/doctor/Availability";
 
 // Admin Dashboard
 import AdminDashboard from "@/pages/dashboard/admin/AdminDashboard";
+import Analytics from "@/pages/dashboard/admin/Analytics";
+import ManageDoctors from "@/pages/dashboard/admin/ManageDoctors";
+import ManagePatients from "@/pages/dashboard/admin/ManagePatients";
+import Approvals from "@/pages/dashboard/admin/Approvals";
+import AppointmentsAdmin from "@/pages/dashboard/admin/AppointmentsAdmin";
+import AdminSettings from "@/pages/dashboard/admin/AdminSettings";
+
+// Shared
+import Messages from "@/pages/dashboard/shared/Messages";
 
 import NotFound from "@/pages/NotFound";
 
@@ -75,11 +89,22 @@ const App = () => (
 
               {/* Doctor */}
               <Route path="doctor" element={<DoctorDashboard />} />
-              <Route path="doctor/*" element={<DoctorDashboard />} />
+              <Route path="doctor/appointments" element={<DoctorAppointments />} />
+              <Route path="doctor/requests" element={<PatientRequests />} />
+              <Route path="doctor/prescriptions" element={<Prescriptions />} />
+              <Route path="doctor/patients" element={<PatientHistory />} />
+              <Route path="doctor/messages" element={<Messages />} />
+              <Route path="doctor/availability" element={<Availability />} />
+              <Route path="doctor/telemedicine" element={<Telemedicine />} />
 
               {/* Admin */}
               <Route path="admin" element={<AdminDashboard />} />
-              <Route path="admin/*" element={<AdminDashboard />} />
+              <Route path="admin/analytics" element={<Analytics />} />
+              <Route path="admin/doctors" element={<ManageDoctors />} />
+              <Route path="admin/patients" element={<ManagePatients />} />
+              <Route path="admin/approvals" element={<Approvals />} />
+              <Route path="admin/appointments" element={<AppointmentsAdmin />} />
+              <Route path="admin/settings" element={<AdminSettings />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
