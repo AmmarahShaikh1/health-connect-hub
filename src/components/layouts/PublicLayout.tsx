@@ -111,16 +111,16 @@ export default function PublicLayout() {
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link to="/contact" className="hover:text-primary">Contact</Link></li>
-                <li><a href="#" className="hover:text-primary">Help Center</a></li>
-                <li><a href="#" className="hover:text-primary">Documentation</a></li>
+                <li><Link to="/contact" className="hover:text-primary">Help Center</Link></li>
+                <li><Link to="/features" className="hover:text-primary">Documentation</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary">HIPAA Compliance</a></li>
+                <li><Link to="/about" className="hover:text-primary">Privacy Policy</Link></li>
+                <li><Link to="/about" className="hover:text-primary">Terms of Service</Link></li>
+                <li><Link to="/about" className="hover:text-primary">HIPAA Compliance</Link></li>
               </ul>
             </div>
           </div>
