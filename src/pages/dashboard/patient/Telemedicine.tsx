@@ -3,7 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Video, Mic, MicOff, VideoOff, Phone, MessageSquare, Monitor, Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Video, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import VideoCall from '@/components/video/VideoCall';
 
 const upcomingCalls = [
   { id: 1, doctor: 'Dr. Sarah Smith', specialty: 'Cardiologist', date: 'Dec 5, 2024', time: '10:00 AM', status: 'ready' },
@@ -12,99 +15,68 @@ const upcomingCalls = [
 
 export default function Telemedicine() {
   const [inCall, setInCall] = useState(false);
-  const [videoOn, setVideoOn] = useState(true);
-  const [micOn, setMicOn] = useState(true);
+  const [selectedDoctor, setSelectedDoctor] = useState<typeof upcomingCalls[0] | null>(null);
+  const [testingEquipment, setTestingEquipment] = useState(false);
+  const [testResults, setTestResults] = useState<{ video: boolean; audio: boolean } | null>(null);
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const { toast } = useToast();
 
-  if (inCall) {
+  const handleTestEquipment = async () => {
+    setTestingEquipment(true);
+    setShowTestDialog(true);
+    setTestResults(null);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      
+      // Check if we got video and audio tracks
+      const hasVideo = stream.getVideoTracks().length > 0;
+      const hasAudio = stream.getAudioTracks().length > 0;
+      
+      setTestResults({ video: hasVideo, audio: hasAudio });
+      
+      // Stop the test stream
+      stream.getTracks().forEach(track => track.stop());
+      
+      if (hasVideo && hasAudio) {
+        toast({
+          title: 'Equipment Ready',
+          description: 'Your camera and microphone are working properly.',
+        });
+      }
+    } catch (err) {
+      setTestResults({ video: false, audio: false });
+      toast({
+        title: 'Equipment Error',
+        description: 'Could not access camera or microphone. Please check permissions.',
+        variant: 'destructive',
+      });
+    } finally {
+      setTestingEquipment(false);
+    }
+  };
+
+  const handleJoinCall = (call: typeof upcomingCalls[0]) => {
+    setSelectedDoctor(call);
+    setInCall(true);
+  };
+
+  const handleEndCall = () => {
+    setInCall(false);
+    setSelectedDoctor(null);
+    toast({
+      title: 'Call Ended',
+      description: 'Your video consultation has ended.',
+    });
+  };
+
+  if (inCall && selectedDoctor) {
     return (
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
-        {/* Video Area */}
-        <div className="flex-1 relative bg-muted">
-          {/* Doctor Video (Main) */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <Avatar className="h-32 w-32 mx-auto mb-4">
-                <AvatarFallback className="bg-primary/10 text-primary text-4xl">DS</AvatarFallback>
-              </Avatar>
-              <p className="text-lg font-medium">Dr. Sarah Smith</p>
-              <p className="text-sm text-muted-foreground">Cardiologist</p>
-              <Badge className="mt-2">Connected</Badge>
-            </div>
-          </div>
-
-          {/* Self Video (Picture-in-Picture) */}
-          <div className="absolute bottom-4 right-4 w-48 h-36 bg-card rounded-lg border shadow-lg flex items-center justify-center">
-            {videoOn ? (
-              <div className="text-center">
-                <Avatar className="h-12 w-12 mx-auto">
-                  <AvatarFallback className="bg-accent text-accent-foreground">You</AvatarFallback>
-                </Avatar>
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground">
-                <VideoOff className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs">Camera Off</p>
-              </div>
-            )}
-          </div>
-
-          {/* Call Timer */}
-          <div className="absolute top-4 left-4">
-            <Badge variant="secondary" className="text-lg px-4 py-2">12:34</Badge>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="bg-card border-t p-4">
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              variant={micOn ? 'outline' : 'destructive'}
-              size="icon"
-              className="h-14 w-14 rounded-full"
-              onClick={() => setMicOn(!micOn)}
-            >
-              {micOn ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-            </Button>
-            <Button
-              variant={videoOn ? 'outline' : 'destructive'}
-              size="icon"
-              className="h-14 w-14 rounded-full"
-              onClick={() => setVideoOn(!videoOn)}
-            >
-              {videoOn ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-14 w-14 rounded-full"
-            >
-              <Monitor className="h-6 w-6" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-14 w-14 rounded-full"
-            >
-              <MessageSquare className="h-6 w-6" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-14 w-14 rounded-full"
-            >
-              <Settings className="h-6 w-6" />
-            </Button>
-            <Button
-              variant="destructive"
-              size="icon"
-              className="h-14 w-14 rounded-full"
-              onClick={() => setInCall(false)}
-            >
-              <Phone className="h-6 w-6 rotate-[135deg]" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      <VideoCall
+        doctorName={selectedDoctor.doctor}
+        doctorSpecialty={selectedDoctor.specialty}
+        onEndCall={handleEndCall}
+      />
     );
   }
 
@@ -125,8 +97,12 @@ export default function Telemedicine() {
                 Ensure you have a stable internet connection and your camera/microphone are working properly.
               </p>
             </div>
-            <Button size="lg" className="shrink-0">
-              <Video className="mr-2 h-5 w-5" />
+            <Button size="lg" className="shrink-0" onClick={handleTestEquipment} disabled={testingEquipment}>
+              {testingEquipment ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Video className="mr-2 h-5 w-5" />
+              )}
               Test Equipment
             </Button>
           </div>
@@ -154,7 +130,7 @@ export default function Telemedicine() {
               </div>
               <div className="flex items-center gap-2">
                 {call.status === 'ready' ? (
-                  <Button onClick={() => setInCall(true)}>
+                  <Button onClick={() => handleJoinCall(call)}>
                     <Video className="mr-2 h-4 w-4" />
                     Join Now
                   </Button>
@@ -191,6 +167,63 @@ export default function Telemedicine() {
           </ul>
         </CardContent>
       </Card>
+
+      {/* Equipment Test Dialog */}
+      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Equipment Test</DialogTitle>
+            <DialogDescription>
+              Testing your camera and microphone for video calls
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            {testingEquipment ? (
+              <div className="text-center">
+                <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary mb-4" />
+                <p>Testing your equipment...</p>
+                <p className="text-sm text-muted-foreground">Please allow access to your camera and microphone</p>
+              </div>
+            ) : testResults ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+                  {testResults.video ? (
+                    <CheckCircle2 className="h-5 w-5 text-success" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-destructive" />
+                  )}
+                  <span className="font-medium">Camera</span>
+                  <Badge variant={testResults.video ? 'default' : 'destructive'} className="ml-auto">
+                    {testResults.video ? 'Working' : 'Not Found'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+                  {testResults.audio ? (
+                    <CheckCircle2 className="h-5 w-5 text-success" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-destructive" />
+                  )}
+                  <span className="font-medium">Microphone</span>
+                  <Badge variant={testResults.audio ? 'default' : 'destructive'} className="ml-auto">
+                    {testResults.audio ? 'Working' : 'Not Found'}
+                  </Badge>
+                </div>
+                {(!testResults.video || !testResults.audio) && (
+                  <p className="text-sm text-muted-foreground mt-4">
+                    Please check your browser permissions and ensure your camera/microphone are connected.
+                  </p>
+                )}
+              </div>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTestDialog(false)}>Close</Button>
+            {testResults && (!testResults.video || !testResults.audio) && (
+              <Button onClick={handleTestEquipment}>Test Again</Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
